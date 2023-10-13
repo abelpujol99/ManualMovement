@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -26,6 +27,26 @@ namespace RobotController
     public class MyRobotController
     {
 
+        private readonly float _initialRotationYJoint0 = 74;
+        private readonly float _finalRotationYJoint0 = 40;
+
+        private readonly float _initialRotationXJoint1 = -11;
+        private readonly float _finalRotationXJoint1 = 2;
+        
+        private readonly float _initialRotationXJoint2 = 132;
+        private readonly float _finalRotationXJoint2 = 93;
+        
+        private readonly float _initialRotationXJoint3 = -36;
+        private readonly float _finalRotationXJoint3 = -11;
+        
+        private readonly float _initialRotationXJoint4 = -11;
+        private readonly float _finalRotationXJoint4 = -11;
+
+        private int _time1;
+        private int _time2;
+
+        private float _timeElapsed;
+
         #region public methods
 
 
@@ -44,31 +65,14 @@ namespace RobotController
         public void PutRobotStraight(out MyQuat rot0, out MyQuat rot1, out MyQuat rot2, out MyQuat rot3) {
 
             //todo: change this, use the function Rotate declared below
-
-            MyVec rotationX;
-            rotationX.x = 1;
-            rotationX.y = 0;
-            rotationX.z = 0;
             
-            MyVec rotationY;
-            rotationY.x = 0;
-            rotationY.y = 1;
-            rotationY.z = 0;
+            rot0 = Rotate(NullQ, RotationY, _initialRotationYJoint0);
+            rot1 = Rotate(rot0, RotationX, _initialRotationXJoint1);
+            rot2 = Rotate(rot1, RotationX, _initialRotationXJoint2);
+            rot3 = Rotate(rot2, RotationX, _initialRotationXJoint3);
 
-            MyVec rotationZ;
-            rotationZ.x = 0;
-            rotationZ.y = 0;
-            rotationZ.z = 1;
-
-            MyVec rotationNull;
-            rotationNull.x = 0;
-            rotationNull.y = 0;
-            rotationNull.z = 0;
-            
-            rot0 = Rotate(NullQ, rotationY, 74);
-            rot1 = Rotate(rot0, rotationX, -11);
-            rot2 = Rotate(rot1, rotationX, 132);
-            rot3 = Rotate(rot2, rotationX, -36);
+            _time1 = 0;
+            _timeElapsed = 0;
         }
 
 
@@ -80,19 +84,37 @@ namespace RobotController
         public bool PickStudAnim(out MyQuat rot0, out MyQuat rot1, out MyQuat rot2, out MyQuat rot3)
         {
 
-            bool myCondition = false;
             //todo: add a check for your condition
 
+            if (_time1 == 0)
+            {
+                _time1 = TimeSinceMidnight;
+            }
+            
 
-
-            if (myCondition)
+            if (_timeElapsed <= 1)
             {
                 //todo: add your code here
-                rot0 = NullQ;
-                rot1 = NullQ;
-                rot2 = NullQ;
-                rot3 = NullQ;
+            
+                _time2 = TimeSinceMidnight;
 
+                _timeElapsed = (_time2 - _time1) / 1000f;
+
+                float degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationYJoint0,
+                    _finalRotationYJoint0, _timeElapsed);
+                rot0 = Rotate(NullQ, RotationY, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint1,
+                    _finalRotationXJoint1, _timeElapsed);
+                rot1 = Rotate(rot0, RotationX, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint2,
+                    _finalRotationXJoint2, _timeElapsed);
+                rot2 = Rotate(rot1, RotationX, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
+                    _finalRotationXJoint3, _timeElapsed);
+                rot3 = Rotate(rot2, RotationX, degreesToRotate);
 
                 return true;
             }
@@ -176,6 +198,52 @@ namespace RobotController
             }
         }
 
+        private static MyVec RotationX
+        {
+            get
+            {
+                MyVec a;
+                a.x = 1;
+                a.y = 0;
+                a.z = 0;
+                return a;
+            }
+        }
+        
+        private static MyVec RotationY
+        {
+            get
+            {
+                MyVec a;
+                a.x = 0;
+                a.y = 1;
+                a.z = 0;
+                return a;
+            }
+        }
+        
+        private static MyVec RotationZ
+        {
+            get
+            {
+                MyVec a;
+                a.x = 0;
+                a.y = 0;
+                a.z = 1;
+                return a;
+            }
+        }
+
+        internal float Deg2Rad(float angle)
+        {
+            return angle * ((float)Math.PI / 180f);
+        }
+
+        internal float Rad2Deg(float angle)
+        {
+            return angle * (180f / (float)Math.PI);
+        }
+
         internal MyQuat Multiply(MyQuat q1, MyQuat q2) {
 
             
@@ -197,16 +265,16 @@ namespace RobotController
             //todo: change this so it takes currentRotation, and calculate a new quaternion rotated by an angle "angle" radians along the normalized axis "axis"
 
             MyQuat quaternionRotationZ = NullQ;
-            quaternionRotationZ.w = (float)Math.Cos(angle * axis.z * ((float)Math.PI / 180f));
-            quaternionRotationZ.z = (float)Math.Sin(angle * axis.z * ((float)Math.PI / 180f));
+            quaternionRotationZ.w = (float)Math.Cos(Deg2Rad(angle) * axis.z);
+            quaternionRotationZ.z = (float)Math.Sin(Deg2Rad(angle) * axis.z);
             
             MyQuat quaternionRotationY = NullQ;
-            quaternionRotationY.w = (float)Math.Cos(angle * axis.y * ((float)Math.PI / 180f));
-            quaternionRotationY.y = (float)Math.Sin(angle * axis.y * ((float)Math.PI / 180f));
+            quaternionRotationY.w = (float)Math.Cos(Deg2Rad(angle) * axis.y);
+            quaternionRotationY.y = (float)Math.Sin(Deg2Rad(angle) * axis.y);
             
             MyQuat quaternionRotationX = NullQ;
-            quaternionRotationX.w = (float)Math.Cos(angle * axis.x * ((float)Math.PI / 180f));
-            quaternionRotationX.x = (float)Math.Sin(angle * axis.x * ((float)Math.PI / 180f));
+            quaternionRotationX.w = (float)Math.Cos(Deg2Rad(angle) * axis.x);
+            quaternionRotationX.x = (float)Math.Sin(Deg2Rad(angle) * axis.x);
 
             MyQuat result = MultiplyQuaternionsAxis(quaternionRotationZ, quaternionRotationX, quaternionRotationY);
             
@@ -218,11 +286,48 @@ namespace RobotController
         internal MyQuat MultiplyQuaternionsAxis(MyQuat qz, MyQuat qx, MyQuat qy)
         {
             
-            //rotation Z -> X -> Y
+            //order to multiply rotation quaternions Z -> X -> Y
 
             MyQuat aux = Multiply(qz, qx);
             
             return Multiply(aux, qy);
+        }
+
+        internal float SphericalInterpolation(MyVec startAngle, MyVec endAngle, float degreesBetweenStartAndEnd, float interpolationValue)
+        {
+            float result;
+            
+            MyVec vector = default;
+
+            vector.x = ((float)Math.Sin((1 - interpolationValue) * degreesBetweenStartAndEnd) / (float)Math.Sin(degreesBetweenStartAndEnd)) * startAngle.x
+                        + ((float)Math.Sin(interpolationValue * degreesBetweenStartAndEnd)/(float)Math.Sin(degreesBetweenStartAndEnd)) * endAngle.x;
+            
+            vector.y = ((float)Math.Sin((1 - interpolationValue) * degreesBetweenStartAndEnd) / (float)Math.Sin(degreesBetweenStartAndEnd)) * startAngle.y
+                        + ((float)Math.Sin(interpolationValue * degreesBetweenStartAndEnd)/(float)Math.Sin(degreesBetweenStartAndEnd)) * endAngle.y;
+
+            return result = Rad2Deg((float)Math.Atan2(vector.y, vector.x));
+            
+            //return 180f - Math.Abs(result);
+        }
+
+        internal float CalculateAngleBetweenAngles(float angle1, float angle2)
+        {
+            return Deg2Rad(Math.Abs(angle1 - angle2));
+        }
+
+        internal float CalculateDegreesRotationFromStartAngleToFinalAngle(float initialAngle, float finalAngle, float interpolationValue)
+        {
+            float degreesBetweenStartAndEnd = CalculateAngleBetweenAngles(initialAngle, finalAngle);
+            
+            MyVec startVector = default;
+            startVector.x = (float)Math.Cos(Deg2Rad(initialAngle)); 
+            startVector.y = (float)Math.Sin(Deg2Rad(initialAngle));
+                
+            MyVec endVector = default;
+            endVector.x = (float)Math.Cos(Deg2Rad(finalAngle)); 
+            endVector.y = (float)Math.Sin(Deg2Rad(finalAngle));
+            
+            return SphericalInterpolation(startVector, endVector, degreesBetweenStartAndEnd, interpolationValue); 
         }
 
         #endregion
