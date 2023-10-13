@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 namespace RobotController
 {
@@ -27,8 +27,25 @@ namespace RobotController
     public class MyRobotController
     {
 
-        private readonly float initialRotationYJoint0 = 74;
-        private readonly float endRotationYJoint0 = 40;
+        private readonly float _initialRotationYJoint0 = 74;
+        private readonly float _finalRotationYJoint0 = 40;
+
+        private readonly float _initialRotationXJoint1 = -11;
+        private readonly float _finalRotationXJoint1 = 2;
+        
+        private readonly float _initialRotationXJoint2 = 132;
+        private readonly float _finalRotationXJoint2 = 93;
+        
+        private readonly float _initialRotationXJoint3 = -36;
+        private readonly float _finalRotationXJoint3 = -11;
+        
+        private readonly float _initialRotationXJoint4 = -11;
+        private readonly float _finalRotationXJoint4 = -11;
+
+        private int _time1;
+        private int _time2;
+
+        private float _timeElapsed;
 
         #region public methods
 
@@ -49,10 +66,13 @@ namespace RobotController
 
             //todo: change this, use the function Rotate declared below
             
-            rot0 = Rotate(NullQ, RotationY, initialRotationYJoint0);
-            rot1 = Rotate(rot0, RotationX, -11);
-            rot2 = Rotate(rot1, RotationX, 132);
-            rot3 = Rotate(rot2, RotationX, -36);
+            rot0 = Rotate(NullQ, RotationY, _initialRotationYJoint0);
+            rot1 = Rotate(rot0, RotationX, _initialRotationXJoint1);
+            rot2 = Rotate(rot1, RotationX, _initialRotationXJoint2);
+            rot3 = Rotate(rot2, RotationX, _initialRotationXJoint3);
+
+            _time1 = 0;
+            _timeElapsed = 0;
         }
 
 
@@ -66,31 +86,35 @@ namespace RobotController
 
             //todo: add a check for your condition
 
-            float interpolationValue = 0.99f;
+            if (_time1 == 0)
+            {
+                _time1 = TimeSinceMidnight;
+            }
+            
 
-
-            if (interpolationValue != 1)
+            if (_timeElapsed <= 1)
             {
                 //todo: add your code here
-                
-                float angleBetweenStartAndEnd = CalculateAngleBetweenAngles(initialRotationYJoint0, endRotationYJoint0);
-
-                MyVec startVector = default;
-                startVector.x = (float)Math.Cos(Deg2Rad(initialRotationYJoint0)); 
-                startVector.y = (float)Math.Sin(Deg2Rad(initialRotationYJoint0));
-                
-                MyVec endVector = default;
-                endVector.x = (float)Math.Cos(Deg2Rad(endRotationYJoint0)); 
-                endVector.y = (float)Math.Sin(Deg2Rad(endRotationYJoint0));
-
-                float angleToRotate = SphericalInterpolation(startVector, endVector, angleBetweenStartAndEnd, interpolationValue);
-                
             
-                rot0 = Rotate(NullQ, RotationY, angleToRotate);
-                rot1 = Rotate(rot0, RotationX, -11);
-                rot2 = Rotate(rot1, RotationX, 132);
-                rot3 = Rotate(rot2, RotationX, -36);
+                _time2 = TimeSinceMidnight;
 
+                _timeElapsed = (_time2 - _time1) / 1000f;
+
+                float degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationYJoint0,
+                    _finalRotationYJoint0, _timeElapsed);
+                rot0 = Rotate(NullQ, RotationY, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint1,
+                    _finalRotationXJoint1, _timeElapsed);
+                rot1 = Rotate(rot0, RotationX, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint2,
+                    _finalRotationXJoint2, _timeElapsed);
+                rot2 = Rotate(rot1, RotationX, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
+                    _finalRotationXJoint3, _timeElapsed);
+                rot3 = Rotate(rot2, RotationX, degreesToRotate);
 
                 return true;
             }
@@ -269,26 +293,41 @@ namespace RobotController
             return Multiply(aux, qy);
         }
 
-        internal float SphericalInterpolation(MyVec startAngle, MyVec endAngle, float angleBetweenStartAndEnd, float interpolationValue)
+        internal float SphericalInterpolation(MyVec startAngle, MyVec endAngle, float degreesBetweenStartAndEnd, float interpolationValue)
         {
             float result;
             
             MyVec vector = default;
 
-            vector.x = ((float)Math.Sin((1 - interpolationValue) * angleBetweenStartAndEnd) / (float)Math.Sin(angleBetweenStartAndEnd)) * startAngle.x
-                        + ((float)Math.Sin(interpolationValue * angleBetweenStartAndEnd)/(float)Math.Sin(angleBetweenStartAndEnd)) * endAngle.x;
+            vector.x = ((float)Math.Sin((1 - interpolationValue) * degreesBetweenStartAndEnd) / (float)Math.Sin(degreesBetweenStartAndEnd)) * startAngle.x
+                        + ((float)Math.Sin(interpolationValue * degreesBetweenStartAndEnd)/(float)Math.Sin(degreesBetweenStartAndEnd)) * endAngle.x;
             
-            vector.y = ((float)Math.Sin((1 - interpolationValue) * angleBetweenStartAndEnd) / (float)Math.Sin(angleBetweenStartAndEnd)) * startAngle.y
-                        + ((float)Math.Sin(interpolationValue * angleBetweenStartAndEnd)/(float)Math.Sin(angleBetweenStartAndEnd)) * endAngle.y;
+            vector.y = ((float)Math.Sin((1 - interpolationValue) * degreesBetweenStartAndEnd) / (float)Math.Sin(degreesBetweenStartAndEnd)) * startAngle.y
+                        + ((float)Math.Sin(interpolationValue * degreesBetweenStartAndEnd)/(float)Math.Sin(degreesBetweenStartAndEnd)) * endAngle.y;
 
             return result = Rad2Deg((float)Math.Atan2(vector.y, vector.x));
             
-            return 180f - Math.Abs(result);
+            //return 180f - Math.Abs(result);
         }
 
         internal float CalculateAngleBetweenAngles(float angle1, float angle2)
         {
             return Deg2Rad(Math.Abs(angle1 - angle2));
+        }
+
+        internal float CalculateDegreesRotationFromStartAngleToFinalAngle(float initialAngle, float finalAngle, float interpolationValue)
+        {
+            float degreesBetweenStartAndEnd = CalculateAngleBetweenAngles(initialAngle, finalAngle);
+            
+            MyVec startVector = default;
+            startVector.x = (float)Math.Cos(Deg2Rad(initialAngle)); 
+            startVector.y = (float)Math.Sin(Deg2Rad(initialAngle));
+                
+            MyVec endVector = default;
+            endVector.x = (float)Math.Cos(Deg2Rad(finalAngle)); 
+            endVector.y = (float)Math.Sin(Deg2Rad(finalAngle));
+            
+            return SphericalInterpolation(startVector, endVector, degreesBetweenStartAndEnd, interpolationValue); 
         }
 
         #endregion
