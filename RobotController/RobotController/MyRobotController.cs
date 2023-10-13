@@ -39,13 +39,16 @@ namespace RobotController
         private readonly float _initialRotationXJoint3 = -36;
         private readonly float _finalRotationXJoint3 = -11;
         
-        private readonly float _initialRotationXJoint4 = -11;
-        private readonly float _finalRotationXJoint4 = -11;
+        private readonly float _initialRotationXJoint4 = 33;
+        private readonly float _finalRotationXJoint4 = 90;
 
         private int _time1;
         private int _time2;
+        private int _time3;
+        private int _time4;
 
-        private float _timeElapsed;
+        private float _timeElapsed1;
+        private float _timeElapsed2;
 
         #region public methods
 
@@ -72,7 +75,9 @@ namespace RobotController
             rot3 = Rotate(rot2, RotationX, _initialRotationXJoint3);
 
             _time1 = 0;
-            _timeElapsed = 0;
+            _time3 = 0;
+            _timeElapsed1 = 0;
+            _timeElapsed2 = 0;
         }
 
 
@@ -84,42 +89,40 @@ namespace RobotController
         public bool PickStudAnim(out MyQuat rot0, out MyQuat rot1, out MyQuat rot2, out MyQuat rot3)
         {
 
-            //todo: add a check for your condition
-
+            _time3 = 0;
+            _timeElapsed2 = 0;
+            
             if (_time1 == 0)
             {
                 _time1 = TimeSinceMidnight;
             }
             
 
-            if (_timeElapsed <= 1)
+            if (_timeElapsed1 <= 1)
             {
-                //todo: add your code here
-            
                 _time2 = TimeSinceMidnight;
 
-                _timeElapsed = (_time2 - _time1) / 1000f;
+                _timeElapsed1 = (_time2 - _time1) / 1000f;
 
                 float degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationYJoint0,
-                    _finalRotationYJoint0, _timeElapsed);
+                    _finalRotationYJoint0, _timeElapsed1);
                 rot0 = Rotate(NullQ, RotationY, degreesToRotate);
                 
                 degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint1,
-                    _finalRotationXJoint1, _timeElapsed);
+                    _finalRotationXJoint1, _timeElapsed1);
                 rot1 = Rotate(rot0, RotationX, degreesToRotate);
                 
                 degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint2,
-                    _finalRotationXJoint2, _timeElapsed);
+                    _finalRotationXJoint2, _timeElapsed1);
                 rot2 = Rotate(rot1, RotationX, degreesToRotate);
                 
                 degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
-                    _finalRotationXJoint3, _timeElapsed);
+                    _finalRotationXJoint3, _timeElapsed1);
                 rot3 = Rotate(rot2, RotationX, degreesToRotate);
 
                 return true;
             }
-
-            //todo: remove this once your code works.
+            
             rot0 = NullQ;
             rot1 = NullQ;
             rot2 = NullQ;
@@ -136,19 +139,44 @@ namespace RobotController
         public bool PickStudAnimVertical(out MyQuat rot0, out MyQuat rot1, out MyQuat rot2, out MyQuat rot3)
         {
 
-            bool myCondition = false;
-            //todo: add a check for your condition
+            _time1 = 0;
+            _timeElapsed1 = 0;
 
-
-
-            while (myCondition)
+            if (_time3 == 0)
             {
-                //todo: add your code here
-
-
+                _time3 = TimeSinceMidnight;
             }
 
-            //todo: remove this once your code works.
+            if (_timeElapsed2 <= 1)
+            {
+                _time4 = TimeSinceMidnight;
+
+                _timeElapsed2 = (_time4 - _time3) / 1000f;
+
+                float degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationYJoint0,
+                    _finalRotationYJoint0, _timeElapsed2);
+                rot0 = Rotate(NullQ, RotationY, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint1,
+                    _finalRotationXJoint1, _timeElapsed2);
+                rot1 = Rotate(rot0, RotationX, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint2,
+                    _finalRotationXJoint2, _timeElapsed2);
+                rot2 = Rotate(rot1, RotationX, degreesToRotate);
+                
+                //SUPOSO QUE HAS DE FER EL QUE QUEDA AQUI
+                
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
+                    _finalRotationXJoint3, _timeElapsed2);
+                rot3 = Rotate(rot2, RotationX, degreesToRotate);
+                
+                /////////////////////////////////////////
+                
+                return true;
+            }
+
             rot0 = NullQ;
             rot1 = NullQ;
             rot2 = NullQ;
@@ -160,19 +188,21 @@ namespace RobotController
 
         public static MyQuat GetSwing(MyQuat rot3)
         {
-            //todo: change the return value for exercise 3
-            return NullQ;
-
+            return Multiply(InverseQuaternion(GetTwist(rot3)), rot3);
         }
 
 
         public static MyQuat GetTwist(MyQuat rot3)
         {
-            //todo: change the return value for exercise 3
-            return NullQ;
+            MyQuat result;
 
+            result.w = rot3.w;
+            result.x = 0;
+            result.y = 0;
+            result.z = rot3.z;
+            
+            return NormalizeQuaternion(result);
         }
-
 
 
 
@@ -244,7 +274,7 @@ namespace RobotController
             return angle * (180f / (float)Math.PI);
         }
 
-        internal MyQuat Multiply(MyQuat q1, MyQuat q2) {
+        internal static MyQuat Multiply(MyQuat q1, MyQuat q2) {
 
             
             MyQuat result;
@@ -281,8 +311,6 @@ namespace RobotController
             return Multiply(currentRotation, result);
         }
         
-        //todo: add here all the functions needed
-
         internal MyQuat MultiplyQuaternionsAxis(MyQuat qz, MyQuat qx, MyQuat qy)
         {
             
@@ -291,6 +319,30 @@ namespace RobotController
             MyQuat aux = Multiply(qz, qx);
             
             return Multiply(aux, qy);
+        }
+
+        internal static MyQuat InverseQuaternion(MyQuat quaternion)
+        {
+            MyQuat result;
+
+            result.w = quaternion.w;
+            result.x = -quaternion.x;
+            result.y = -quaternion.y;
+            result.z = -quaternion.z;
+
+            return result;
+        }
+
+        internal static MyQuat NormalizeQuaternion(MyQuat quaternion)
+        {
+            float length = (float)Math.Sqrt(Math.Pow(quaternion.w, 2f) + Math.Pow(quaternion.x, 2f) + Math.Pow(quaternion.y, 2f) + Math.Pow(quaternion.z, 2f));
+
+            quaternion.w /= length;
+            quaternion.x /= length;
+            quaternion.y /= length;
+            quaternion.z /= length;
+
+            return quaternion;
         }
 
         internal float SphericalInterpolation(MyVec startAngle, MyVec endAngle, float degreesBetweenStartAndEnd, float interpolationValue)
