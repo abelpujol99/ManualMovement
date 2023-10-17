@@ -14,6 +14,17 @@ namespace RobotController
         public float x;
         public float y;
         public float z;
+        
+        public static MyQuat operator* (MyQuat q1, MyQuat q2) 
+        {
+            MyQuat result;
+            result.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+            result.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+            result.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
+            result.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
+            
+            return result;
+        }
     }
 
     public struct MyVec
@@ -39,13 +50,19 @@ namespace RobotController
         private readonly float _initialRotationXJoint3 = -36;
         private readonly float _finalRotationXJoint3 = -11;
         
-        private readonly float _initialRotationXJoint4 = -11;
-        private readonly float _finalRotationXJoint4 = -11;
+        private readonly float _initialRotationXJoint4 = 33;
+        private readonly float _finalRotationXJoint4 = 90;
 
+        private static MyQuat _twist;
+        private static MyQuat _swing;
+        
         private int _time1;
         private int _time2;
+        private int _time3;
+        private int _time4;
 
-        private float _timeElapsed;
+        private float _timeElapsed1;
+        private float _timeElapsed2;
 
         #region public methods
 
@@ -71,8 +88,16 @@ namespace RobotController
             rot2 = Rotate(rot1, RotationX, _initialRotationXJoint2);
             rot3 = Rotate(rot2, RotationX, _initialRotationXJoint3);
 
+            /*_swing = Rotate(rot2, RotationX, _initialRotationXJoint3);
+            _twist = Rotate(_swing, RotationY, _initialRotationXJoint4);
+
+            rot3 = Multiply(_twist, _swing);*/
+            
+
             _time1 = 0;
-            _timeElapsed = 0;
+            _time3 = 0;
+            _timeElapsed1 = 0;
+            _timeElapsed2 = 0;
         }
 
 
@@ -84,42 +109,50 @@ namespace RobotController
         public bool PickStudAnim(out MyQuat rot0, out MyQuat rot1, out MyQuat rot2, out MyQuat rot3)
         {
 
-            //todo: add a check for your condition
-
+            _time3 = 0;
+            _timeElapsed2 = 0;
+            
             if (_time1 == 0)
             {
                 _time1 = TimeSinceMidnight;
             }
             
 
-            if (_timeElapsed <= 1)
+            if (_timeElapsed1 <= 1)
             {
-                //todo: add your code here
-            
                 _time2 = TimeSinceMidnight;
 
-                _timeElapsed = (_time2 - _time1) / 1000f;
+                _timeElapsed1 = (_time2 - _time1) / 1000f;
 
                 float degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationYJoint0,
-                    _finalRotationYJoint0, _timeElapsed);
+                    _finalRotationYJoint0, _timeElapsed1);
                 rot0 = Rotate(NullQ, RotationY, degreesToRotate);
                 
                 degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint1,
-                    _finalRotationXJoint1, _timeElapsed);
+                    _finalRotationXJoint1, _timeElapsed1);
                 rot1 = Rotate(rot0, RotationX, degreesToRotate);
                 
                 degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint2,
-                    _finalRotationXJoint2, _timeElapsed);
+                    _finalRotationXJoint2, _timeElapsed1);
                 rot2 = Rotate(rot1, RotationX, degreesToRotate);
-                
+
                 degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
-                    _finalRotationXJoint3, _timeElapsed);
+                    _finalRotationXJoint3, _timeElapsed1);
                 rot3 = Rotate(rot2, RotationX, degreesToRotate);
+
+                /*degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
+                    _finalRotationXJoint3, _timeElapsed2);
+                _swing = Rotate(rot2, RotationX, degreesToRotate);
+
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_finalRotationXJoint4,
+                    _initialRotationXJoint4, 1);
+                _twist = Rotate(_swing, RotationY, degreesToRotate);
+
+                rot3 = Multiply(_twist, _swing);*/
 
                 return true;
             }
-
-            //todo: remove this once your code works.
+            
             rot0 = NullQ;
             rot1 = NullQ;
             rot2 = NullQ;
@@ -136,19 +169,45 @@ namespace RobotController
         public bool PickStudAnimVertical(out MyQuat rot0, out MyQuat rot1, out MyQuat rot2, out MyQuat rot3)
         {
 
-            bool myCondition = false;
-            //todo: add a check for your condition
+            _time1 = 0;
+            _timeElapsed1 = 0;
 
-
-
-            while (myCondition)
+            if (_time3 == 0)
             {
-                //todo: add your code here
-
-
+                _time3 = TimeSinceMidnight;
             }
 
-            //todo: remove this once your code works.
+            if (_timeElapsed2 <= 1)
+            {
+                _time4 = TimeSinceMidnight;
+
+                _timeElapsed2 = (_time4 - _time3) / 1000f;
+
+                float degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationYJoint0,
+                    _finalRotationYJoint0, _timeElapsed2);
+                rot0 = Rotate(NullQ, RotationY, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint1,
+                    _finalRotationXJoint1, _timeElapsed2);
+                rot1 = Rotate(rot0, RotationX, degreesToRotate);
+                
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint2,
+                    _finalRotationXJoint2, _timeElapsed2);
+                rot2 = Rotate(rot1, RotationX, degreesToRotate);
+
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint3,
+                    _finalRotationXJoint3, _timeElapsed2);
+                _swing = Rotate(rot2, RotationX, degreesToRotate);
+
+                degreesToRotate = CalculateDegreesRotationFromStartAngleToFinalAngle(_initialRotationXJoint4,
+                    _finalRotationXJoint4, _timeElapsed2);
+                _twist = Rotate(_swing, RotationY, degreesToRotate);
+
+                rot3 = _twist * _swing;
+                
+                return true;
+            }
+
             rot0 = NullQ;
             rot1 = NullQ;
             rot2 = NullQ;
@@ -160,21 +219,14 @@ namespace RobotController
 
         public static MyQuat GetSwing(MyQuat rot3)
         {
-            //todo: change the return value for exercise 3
-            return NullQ;
-
+            return InverseQuaternion(GetTwist(rot3)) * rot3;
         }
 
 
         public static MyQuat GetTwist(MyQuat rot3)
         {
-            //todo: change the return value for exercise 3
-            return NullQ;
-
+            return NormalizeQuaternion(rot3 * InverseQuaternion(_swing));
         }
-
-
-
 
         #endregion
 
@@ -221,18 +273,6 @@ namespace RobotController
                 return a;
             }
         }
-        
-        private static MyVec RotationZ
-        {
-            get
-            {
-                MyVec a;
-                a.x = 0;
-                a.y = 0;
-                a.z = 1;
-                return a;
-            }
-        }
 
         internal float Deg2Rad(float angle)
         {
@@ -242,19 +282,6 @@ namespace RobotController
         internal float Rad2Deg(float angle)
         {
             return angle * (180f / (float)Math.PI);
-        }
-
-        internal MyQuat Multiply(MyQuat q1, MyQuat q2) {
-
-            
-            MyQuat result;
-            result.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-            result.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-            result.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
-            result.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
-            
-            return result;
-
         }
 
         internal MyQuat Rotate(MyQuat currentRotation, MyVec axis, float angle)
@@ -276,27 +303,37 @@ namespace RobotController
             quaternionRotationX.w = (float)Math.Cos(Deg2Rad(angle) * axis.x);
             quaternionRotationX.x = (float)Math.Sin(Deg2Rad(angle) * axis.x);
 
-            MyQuat result = MultiplyQuaternionsAxis(quaternionRotationZ, quaternionRotationX, quaternionRotationY);
+            MyQuat result = quaternionRotationZ * quaternionRotationX * quaternionRotationY;
             
-            return Multiply(currentRotation, result);
+            return currentRotation * result;
         }
-        
-        //todo: add here all the functions needed
 
-        internal MyQuat MultiplyQuaternionsAxis(MyQuat qz, MyQuat qx, MyQuat qy)
+        internal static MyQuat InverseQuaternion(MyQuat quaternion)
         {
-            
-            //order to multiply rotation quaternions Z -> X -> Y
+            MyQuat result;
 
-            MyQuat aux = Multiply(qz, qx);
-            
-            return Multiply(aux, qy);
+            result.w = quaternion.w;
+            result.x = -quaternion.x;
+            result.y = -quaternion.y;
+            result.z = -quaternion.z;
+
+            return result;
+        }
+
+        internal static MyQuat NormalizeQuaternion(MyQuat quaternion)
+        {
+            float length = (float)Math.Sqrt(Math.Pow(quaternion.w, 2f) + Math.Pow(quaternion.x, 2f) + Math.Pow(quaternion.y, 2f) + Math.Pow(quaternion.z, 2f));
+
+            quaternion.w /= length;
+            quaternion.x /= length;
+            quaternion.y /= length;
+            quaternion.z /= length;
+
+            return quaternion;
         }
 
         internal float SphericalInterpolation(MyVec startAngle, MyVec endAngle, float degreesBetweenStartAndEnd, float interpolationValue)
         {
-            float result;
-            
             MyVec vector = default;
 
             vector.x = ((float)Math.Sin((1 - interpolationValue) * degreesBetweenStartAndEnd) / (float)Math.Sin(degreesBetweenStartAndEnd)) * startAngle.x
@@ -305,9 +342,7 @@ namespace RobotController
             vector.y = ((float)Math.Sin((1 - interpolationValue) * degreesBetweenStartAndEnd) / (float)Math.Sin(degreesBetweenStartAndEnd)) * startAngle.y
                         + ((float)Math.Sin(interpolationValue * degreesBetweenStartAndEnd)/(float)Math.Sin(degreesBetweenStartAndEnd)) * endAngle.y;
 
-            return result = Rad2Deg((float)Math.Atan2(vector.y, vector.x));
-            
-            //return 180f - Math.Abs(result);
+            return Rad2Deg((float)Math.Atan2(vector.y, vector.x));
         }
 
         internal float CalculateAngleBetweenAngles(float angle1, float angle2)
