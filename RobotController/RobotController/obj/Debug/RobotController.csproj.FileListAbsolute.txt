@@ -1,0 +1,9 @@
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\bin\Debug\RobotController.dll
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\bin\Debug\RobotController.pdb
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\bin\Debug\UnityEngine.dll
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\bin\Debug\UnityEngine.xml
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\obj\Debug\RobotController.csproj.AssemblyReference.cache
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\obj\Debug\RobotController.csproj.CoreCompileInputs.cache
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\obj\Debug\RobotController.csproj.CopyComplete
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\obj\Debug\RobotController.dll
+D:\Repos\Mecanica2\ManualMovement\RobotController\RobotController\obj\Debug\RobotController.pdb
