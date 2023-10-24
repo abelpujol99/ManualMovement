@@ -14,7 +14,7 @@ Adrià Pérez
 
 adria.perez.garrofe@enti.cat
 
-<img src='' width='400'>
+<img src='https://cdn.discordapp.com/attachments/913391373762326570/1166447312797716652/PXL_20230425_234301451.jpg?ex=654a85b6&is=653810b6&hm=42cc130ec6263409da57a351eac28d2c6b3ebf534eb2179afec0d1f7005627f3&' width='400'>
 
 
 ## Ex2 Explanation:
